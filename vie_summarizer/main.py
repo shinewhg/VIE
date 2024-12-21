@@ -4,7 +4,6 @@ from pprint import pprint
 from rocketchat_API.rocketchat import RocketChat
 import vie_summarizer.rocketchat.rocketchat as rocketchat
 import vie_summarizer.time.time as time
-import vie_summarizer.mongodb.mongodb as mongodb
 
 def main():
     pat_userid, pat_token = get_creds()
@@ -22,7 +21,7 @@ def main():
                 raise Exception("Room not found: " + room_name)
             
             messages = rocket.groups_history(room_id, oldest=start_time, latest=end_time, count=1000).json()['messages']
-            rocketChatHelper.organize_threads(messages)
+            rocketChatHelper.get_threads(messages)
 
 def get_creds():
     return os.environ.get('ROCKETCHAT_PAT_USERID'), os.environ.get('ROCKETCHAT_PAT_TOKEN')
