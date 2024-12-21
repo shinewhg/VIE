@@ -4,12 +4,12 @@ from requests import sessions
 from rocketchat_API.rocketchat import RocketChat
 import vie_summarizer.rocketchat.rocketchat as rocketchat
 import vie_summarizer.time.time as time
-import vie_summarizer.ai.ai as ai
+import vie_summarizer.ollama.ollama as ollama
 
 def main():
     pat_userid, pat_token = get_creds()
     start_time, end_time = time.get_24h_window()
-    ai_client = ai.AI("http://localhost:11434/api/generate")
+    ai_client = ollama.AI("http://localhost:11434")
 
     with sessions.Session() as session:
         rocket = RocketChat(user_id=pat_userid, auth_token=pat_token, server_url='https://rc.seekingalpha.com', session=session)
@@ -32,3 +32,6 @@ def main():
 
 def get_creds():
     return os.environ.get('ROCKETCHAT_PAT_USERID'), os.environ.get('ROCKETCHAT_PAT_TOKEN')
+
+if __name__ == "__main__":
+    main()
