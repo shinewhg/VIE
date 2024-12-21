@@ -13,8 +13,17 @@ class RocketChatHelper:
             kwargs=kwargs,
         )
 
+    def rooms_get_discussions(self, room_id, **kwargs):
+        """Get Room Discussions."""
+        return self.rocket.call_api_get(
+            "rooms.getDiscussions",
+            roomId=room_id,
+            kwargs=kwargs,
+        )
+
     def get_room_id(self, group_name):
         for group in self.groups_list['groups']:
             if group['fname'] == group_name:
                 return group['_id']
         return None
+    
