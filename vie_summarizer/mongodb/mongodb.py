@@ -1,3 +1,4 @@
+# Unused, consider delete
 from json import dumps
 
 def get_time_interval_query(key: str, start_time: str, end_time: str):
@@ -14,16 +15,3 @@ def get_time_interval_query(key: str, start_time: str, end_time: str):
         }
     }
     return dumps(query)
-
-def sanity_check():
-    # query = {
-    #     "ts": {
-    #         "$ne": "",
-    #         # "$gte": 'ISODate(2024-12-20T00:50:40.637Z)',
-    #     }
-    # }
-
-    # return dumps(query)
-
-    return '{"ts": {"$gte": "ISODate("2024-12-20T00:50:40.637Z"}}'
-    # return '{"ts": {"$ne": ""}}'

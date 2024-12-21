@@ -11,7 +11,4 @@ def get_24h_window():
     utc_end_time = nyc_end_time.astimezone(pytz.utc).isoformat().replace('+00:00', 'Z')
     utc_start_time = nyc_start_time.astimezone(pytz.utc).isoformat().replace('+00:00', 'Z')
 
-    # utc_end_time = str(nyc_end_time.astimezone(pytz.utc).timestamp())
-    # utc_start_time = str(nyc_start_time.astimezone(pytz.utc).timestamp())
-
     return utc_start_time, utc_end_time
