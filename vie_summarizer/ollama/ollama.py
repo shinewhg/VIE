@@ -1,6 +1,5 @@
 import requests
 from urllib.parse import urljoin
-from pprint import pprint
 
 class AI():
     def __init__(self, url: str):
@@ -10,8 +9,7 @@ class AI():
     def summarize_conversation(self, text: str):
         json = {
             "model": "llama3.2",
-            "prompt": "Please summarize the post and any replies in under 5 sentences. If you cannot summarize it, say Cannot Summarize. Here is the post and any replies:\n" + text,
-            # "prompt": "Why is the sky blue?",
+            "prompt": "Below is a post and replies (if any) regarding stocks. Summarize the conversation. If the content is empty then you can ignore it. Here is the conversation:\n" + text,
             "stream": False,
         }
 

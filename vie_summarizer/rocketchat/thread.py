@@ -11,9 +11,9 @@ class Thread():
         messages = []
         for i, item in enumerate(self.thread_messages):
             if i == 0:
-                s = '%s posted: %s' % (item['u']['name'], item['msg'])
+                s = '%s: %s' % (item['u']['name'], item['msg'])
             else:
-                s = '%s replied: %s' % (item['u']['name'], item['msg'])
+                s = '%s: %s' % (item['u']['name'], item['msg'])
 
             messages.append(s)
         
@@ -21,3 +21,6 @@ class Thread():
 
     def add_summary(self, summary):
         self.summary = summary
+
+    def get_link(self, room_url: str) -> str:
+        return f'{room_url}?msg={self.thread_id}'
