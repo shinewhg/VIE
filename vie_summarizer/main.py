@@ -19,18 +19,26 @@ def main():
         rocket = RocketChat(user_id=pat_userid, auth_token=pat_token, server_url=rocketchat_url, session=session)
         rocketChatHelper = rocketchat.RocketChatHelper(rocket)
 
-        # rooms = ["VIE: Off-Topic & Trading", "Value Investor's Edge"]
-        rooms_to_summarize = [room.Room("Value Investor's Edge", "/group/value-investor-s-edge")]
+        rooms_to_summarize = [
+            room.Room("Value Investor's Edge", "/group/value-investor-s-edge"),
+            room.Room("VIE: Off-Topic & Trading", "/group/vie-off-topic-and-trading"),
+        ]
 
         for curr_room in rooms_to_summarize:
+            print("Room: " + curr_room.name)
+
             room_id = rocketChatHelper.get_room_id(curr_room.name)
             if room_id is None:
                 raise Exception("Room not found: " + curr_room.name)
             
             room_url = urljoin(rocketchat_url, curr_room.url_prefix)
             
+            print("Getting threads...")
+
             messages = rocket.groups_history(room_id, oldest=start_time, latest=end_time, count=1000).json()['messages']
             threads = rocketChatHelper.get_threads(messages)
+
+            print("Summarizing threads...")
 
             for id, thread in threads.items():
                 thread.add_summary(ai_client.summarize_conversation(thread.compile()))
@@ -38,9 +46,13 @@ def main():
             response = rocket.chat_post_message(f"Summarizing threads from {start_time} to {end_time}", room_id=room_id)
             summary_thread_id = response.json()['message']['_id']
 
+            print("Posting summaries...")
+
             for id, thread in threads.items():
                 message = "{}\n{}".format(thread.get_link(room_url), thread.summary)
                 response = rocket.chat_post_message(message, room_id=room_id, tmid=summary_thread_id, tmshow=False)
+            
+            print("Done Room: " + curr_room.name + "\n=====")
 
 def get_creds():
     return os.environ.get('ROCKETCHAT_PAT_USERID'), os.environ.get('ROCKETCHAT_PAT_TOKEN')
