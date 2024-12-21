@@ -1,4 +1,3 @@
-from pprint import pprint
 from collections import OrderedDict
 from vie_summarizer.rocketchat.thread import Thread
 from rocketchat_API.rocketchat import RocketChat
@@ -14,7 +13,7 @@ class RocketChatHelper():
                 return group['_id']
         return None
     
-    def get_threads(self, messages: list):
+    def get_threads(self, messages: list) -> list[Thread]:
         threads = OrderedDict()
 
         for message in reversed(messages):
@@ -28,12 +27,6 @@ class RocketChatHelper():
                     continue
 
                 thread.append(message)
-        
-        print("Number of threads: " + str(len(threads)))
-        for id, thread in threads.items():
-            thread_messages = thread.messages()
-            print(id + ", " + thread_messages[0]['u']['name'] + ", " + thread_messages[0]['ts'])
-            for message in thread_messages:
-                print(message['msg'])
-            print("===================")
+
+        return threads
     
