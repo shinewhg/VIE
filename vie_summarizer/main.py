@@ -1,19 +1,24 @@
 import os
 from requests import sessions
 from urllib.parse import urljoin
-# from pprint import pprint
+from pprint import pprint
 from rocketchat_API.rocketchat import RocketChat
 import vie_summarizer.rocketchat.rocketchat as rocketchat
 import vie_summarizer.rocketchat.room as room
 import vie_summarizer.time.time as time
-import vie_summarizer.ollama.ollama as ollama
+# import vie_summarizer.ollama.ollama as ollama
+import vie_summarizer.pdf.pdf as pdf
+import google.generativeai as genai
+import base64
 
 rocketchat_url = 'https://rc.seekingalpha.com'
 
 def main():
-    pat_userid, pat_token = get_creds()
+    pat_userid, pat_token, gemini_api_key = get_creds()
+    genai.configure(api_key=gemini_api_key)
+
     start_time, end_time = time.get_24h_window()
-    ai_client = ollama.AI("http://localhost:11434")
+    # ai_client = ollama.AI("http://localhost:11434")
 
     with sessions.Session() as session:
         rocket = RocketChat(user_id=pat_userid, auth_token=pat_token, server_url=rocketchat_url, session=session)
@@ -38,24 +43,55 @@ def main():
             messages = rocket.groups_history(room_id, oldest=start_time, latest=end_time, count=1000).json()['messages']
             threads = rocketChatHelper.get_threads(messages)
 
+            print("Generating PDF...")
+
+            doc = pdf.PDF()
+            for id, thread in threads.items():
+                # doc.add_thread_start()
+                doc.add_thread(thread, rocketchat_url)
+                
+                # doc.add_thread_end()
+                # doc.add_page_break()
+
+            pdf_name = f"./generated/{curr_room.name}-{start_time}.pdf"
+            doc.generate_pdf(pdf_name)
+
             print("Summarizing threads...")
 
-            for id, thread in threads.items():
-                thread.add_summary(ai_client.summarize_conversation(thread.compile()))
+            model = genai.GenerativeModel("gemini-1.5-flash")
+            doc_path = pdf_name
 
-            response = rocket.chat_post_message(f"Summarizing threads from {start_time} to {end_time}", room_id=room_id)
-            summary_thread_id = response.json()['message']['_id']
+            # Read and encode the local file
+            with open(doc_path, "rb") as doc_file:
+                doc_data = base64.standard_b64encode(doc_file.read()).decode("utf-8")
 
-            print("Posting summaries...")
+            prompt = "The following is a chat on shipping stocks. Please summarize the key points, highlighting details and numbers when appropriate."
 
-            for id, thread in threads.items():
-                message = "{}\n{}".format(thread.get_link(room_url), thread.summary)
-                response = rocket.chat_post_message(message, room_id=room_id, tmid=summary_thread_id, tmshow=False)
+            response = model.generate_content([{'mime_type': 'application/pdf', 'data': doc_data}, prompt])
+
+            summary = response.text
+            print(summary)
+
+            # print("Posting summaries...")
+
+            # response = rocket.chat_post_message(f"Summarizing threads from {start_time} to {end_time}", room_id=room_id)
+            # summary_thread_id = response.json()['message']['_id']
+
+            # response = rocket.chat_post_message(summary, room_id=room_id, tmid=summary_thread_id, tmshow=False)
             
-            print("Done Room: " + curr_room.name + "\n=====")
+            # print("Done Room: " + curr_room.name + "\n=====")
 
 def get_creds():
-    return os.environ.get('ROCKETCHAT_PAT_USERID'), os.environ.get('ROCKETCHAT_PAT_TOKEN')
+    userid = os.environ.get('ROCKETCHAT_PAT_USERID')
+    token = os.environ.get('ROCKETCHAT_PAT_TOKEN')
+    if userid is None or token is None:
+        raise Exception("ROCKETCHAT_PAT_USERID and ROCKETCHAT_PAT_TOKEN must be set in environment")
+    
+    gemini_api_key = os.environ.get('GEMINI_API_KEY')
+    if gemini_api_key is None:
+        raise Exception("GEMINI_API_KEY must be set in environment")
+    
+    return userid, token, gemini_api_key
 
 if __name__ == "__main__":
     main()
